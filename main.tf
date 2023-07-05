@@ -1,13 +1,17 @@
+# export DIGITAL_TOKEN = <insert token> 
 terraform {
   required_providers {
     digitalocean = {
-      source = "digitalocean/digitalocean"
+      source  = "digitalocean/digitalocean"
       version = "~> 2.0"
     }
   }
 }
+variable "do_token" {}
 
-provider "digitalocean"{}
+provider "digitalocean" {
+  token = var.do_token
+}
 
 # Set the variable value in *.tfvars file 
 # or using -var="do_token=..." CLI option
@@ -20,16 +24,14 @@ resource "digitalocean_ssh_key" "web" {
 
 # Create a new Web Droplet in the nyc2 region
 resource "digitalocean_droplet" "web" {
-  image  = "ubuntu-20-04-x64"
-  name   = "testing-1"
-  region = "ams3"
-  size   = "s-1vcpu-1gb"
+  image      = "ubuntu-20-04-x64"
+  name       = "testing-1"
+  region     = "ams3"
+  size       = "s-1vcpu-1gb"
   monitoring = true
-  private_networking = false
-  ssh_keys = [digitalocean_ssh_key.web.id]
-  user_data = // to install packages like doctl
+  #private_networking = false // need to use vpc_uuid instead since private_networking is deprecated
+  ssh_keys  = [digitalocean_ssh_key.web.id]
+  user_data = file("${path.module}/files/user-data.sh")
 }
-
-
 
 
