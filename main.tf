@@ -36,24 +36,28 @@ resource "digitalocean_droplet" "web" {
   user_data = file("${path.module}/files/user-data.sh")
 }
 
-resource "digitalocean_certificate" "web" {
-  name    = "web-certificate"
-  type    = "lets_encrypt"
-  domains = ["goat.kantorobotics.jp"]
-}
+# resource "digitalocean_certificate" "certSN" {
+#   name    = "web-certificate-snappy"
+#   type    = "lets_encrypt"
+#   domains = ["snappy.kantorobotics.jp"]
+
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
 
 resource "digitalocean_loadbalancer" "web" {
   name   = "web-lb"
   region = "ams3"
 
   forwarding_rule {
-    entry_port     = 443
-    entry_protocol = "https"
+    entry_port     = 80
+    entry_protocol = "http"
 
     target_port     = 8080
     target_protocol = "http"
 
-    certificate_name = digitalocean_certificate.web.id
+    # certificate_name = digitalocean_certificate.certSN.name
 
   }
 
@@ -68,11 +72,16 @@ resource "digitalocean_loadbalancer" "web" {
 
 # Create a new domain
 resource "digitalocean_domain" "domain" {
-  name = "goat.kantorobotics.jp"
-  # ip_address = digitalocean_droplet.web.ipv4_address
+  name = "kantorobotics.jp"
 }
 
-# Add an A record to the domain for www.example.com.
+resource "digitalocean_record" "cname" {
+  domain = digitalocean_domain.domain.name
+  type   = "CNAME"
+  name   = "www"
+  value  = "relativiteit.github.io."
+}
+
 resource "digitalocean_record" "main" {
   domain = digitalocean_domain.domain.name
   type   = "A"
@@ -80,4 +89,9 @@ resource "digitalocean_record" "main" {
   value  = digitalocean_loadbalancer.web.ip
 }
 
-
+resource "digitalocean_record" "mainSnappy" {
+  domain = digitalocean_domain.domain.name
+  type   = "A"
+  name   = "snappy"
+  value  = digitalocean_loadbalancer.web.ip
+}
