@@ -36,24 +36,31 @@ resource "digitalocean_droplet" "web" {
   user_data = file("${path.module}/files/user-data.sh")
 }
 
-
+resource "digitalocean_certificate" "web" {
+  name    = "web-certificate"
+  type    = "lets_encrypt"
+  domains = ["goat.kantorobotics.jp"]
+}
 
 resource "digitalocean_loadbalancer" "web" {
   name   = "web-lb"
   region = "ams3"
 
   forwarding_rule {
-    entry_port     = 80
-    entry_protocol = "http"
+    entry_port     = 443
+    entry_protocol = "https"
 
     target_port     = 8080
     target_protocol = "http"
+
+    certificate_name = digitalocean_certificate.web.id
+
   }
 
   healthcheck {
     port     = 8080
     protocol = "http"
-    path = "/"
+    path     = "/"
   }
 
   droplet_ids = digitalocean_droplet.web.*.id
