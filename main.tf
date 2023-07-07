@@ -31,25 +31,24 @@ resource "digitalocean_droplet" "web" {
   user_data = file("${path.module}/files/user-data.sh")
 }
 
-# resource "digitalocean_certificate" "web" {
-#   name    = "web-certificate"
-#   type    = "lets_encrypt"
-#   domains = ["snappy.kantorobotics.jp", "www.kantorobotics.jp"]
-# }
+resource "digitalocean_certificate" "certificate" {
+  name    = "web-certificate-snappy"
+  type    = "lets_encrypt"
+  domains = ["www.kantorobotics.jp", "kantorobotics.jp", "snappy.kantorobotics.jp"]
+}
 
 resource "digitalocean_loadbalancer" "web" {
   name   = "web-lb"
   region = "ams3"
 
   forwarding_rule {
-    entry_port     = 80
-    entry_protocol = "http"
+    entry_port     = 443
+    entry_protocol = "https"
 
     target_port     = 8080
     target_protocol = "http"
 
-    # certificate_name = digitalocean_certificate.web.name
-
+    certificate_id = digitalocean_certificate.certificate.name
   }
 
   healthcheck {
@@ -107,3 +106,5 @@ resource "digitalocean_record" "github_pages_4" {
   name   = "@"
   value  = "185.199.111.153"
 }
+
+
