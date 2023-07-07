@@ -13,11 +13,6 @@ provider "digitalocean" {
   token = var.do_token
 }
 
-
-# Set the variable value in *.tfvars file 
-# or using -var="do_token=..." CLI option
-# variable "do_token" {
-
 resource "digitalocean_ssh_key" "web" {
   name       = "web app SHH key"
   public_key = file("${path.module}/files/id_rsa.pub")
@@ -36,14 +31,10 @@ resource "digitalocean_droplet" "web" {
   user_data = file("${path.module}/files/user-data.sh")
 }
 
-# resource "digitalocean_certificate" "certSN" {
-#   name    = "web-certificate-snappy"
+# resource "digitalocean_certificate" "web" {
+#   name    = "web-certificate"
 #   type    = "lets_encrypt"
-#   domains = ["snappy.kantorobotics.jp"]
-
-#   lifecycle {
-#     create_before_destroy = true
-#   }
+#   domains = ["snappy.kantorobotics.jp", "www.kantorobotics.jp"]
 # }
 
 resource "digitalocean_loadbalancer" "web" {
@@ -57,7 +48,7 @@ resource "digitalocean_loadbalancer" "web" {
     target_port     = 8080
     target_protocol = "http"
 
-    # certificate_name = digitalocean_certificate.certSN.name
+    # certificate_name = digitalocean_certificate.web.name
 
   }
 
@@ -82,16 +73,37 @@ resource "digitalocean_record" "cname" {
   value  = "relativiteit.github.io."
 }
 
-resource "digitalocean_record" "main" {
-  domain = digitalocean_domain.domain.name
-  type   = "A"
-  name   = "@"
-  value  = digitalocean_loadbalancer.web.ip
-}
-
 resource "digitalocean_record" "mainSnappy" {
   domain = digitalocean_domain.domain.name
   type   = "A"
   name   = "snappy"
   value  = digitalocean_loadbalancer.web.ip
+}
+
+resource "digitalocean_record" "github_pages_1" {
+  domain = digitalocean_domain.domain.name
+  type   = "A"
+  name   = "@"
+  value  = "185.199.108.153"
+}
+
+resource "digitalocean_record" "github_pages_2" {
+  domain = digitalocean_domain.domain.name
+  type   = "A"
+  name   = "@"
+  value  = "185.199.109.153"
+}
+
+resource "digitalocean_record" "github_pages_3" {
+  domain = digitalocean_domain.domain.name
+  type   = "A"
+  name   = "@"
+  value  = "185.199.110.153"
+}
+
+resource "digitalocean_record" "github_pages_4" {
+  domain = digitalocean_domain.domain.name
+  type   = "A"
+  name   = "@"
+  value  = "185.199.111.153"
 }
